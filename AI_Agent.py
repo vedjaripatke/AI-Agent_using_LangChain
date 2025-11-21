@@ -2,7 +2,7 @@ import streamlit as st
 from langchain_openai import ChatOpenAI
 from langchain_community.tools import DuckDuckGoSearchRun
 from langchain_community.agent_toolkits.load_tools import load_tools
-from langchain.agents import AgentExecutor, create_react_agent
+from langgraph.prebuilt import create_react_agent
 from langchain import hub
 
 # 1. Page Config
