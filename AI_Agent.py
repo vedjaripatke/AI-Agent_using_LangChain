@@ -2,7 +2,7 @@ import streamlit as st
 from langchain_openai import ChatOpenAI
 from langchain_community.tools import DuckDuckGoSearchRun
 from langchain_community.agent_toolkits.load_tools import load_tools
-from langchain.agents import load_tools, initialize_agent, AgentType
+from langchain.agents import AgentExecutor, create_react_agent
 from langchain import hub
 
 # 1. Page Config
@@ -28,13 +28,14 @@ try:
     search_tool = DuckDuckGoSearchRun()
     
     # Math tool (requires llm-math from langchain-community)
-    # We use the updated import path for load_tools
-    math_tool = load_tools(["llm-math"], llm=llm)[0]
+    # load_tools returns a list, so we add it to our tools list
+    math_tools = load_tools(["llm-math"], llm=llm)
     
-    tools = [search_tool, math_tool]
+    # Combine all tools
+    tools = [search_tool] + math_tools
 
     # 5. Pull the Prompt Template
-    # This pulls the standard "ReAct" prompt from LangChain Hub (standard v0.1+ method)
+    # This pulls the standard "ReAct" prompt from LangChain Hub
     prompt = hub.pull("hwchase17/react")
 
     # 6. Create the Agent
@@ -44,11 +45,12 @@ try:
     agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True, handle_parsing_errors=True)
 
     # 8. Chat Interface
-    user_input = st.text_input("Ask a question (e.g., 'Price of AAPL * 5?')")
+    user_input = st.text_input("Ask a question (e.g., 'What is the stock price of Apple multiplied by 2?')")
 
     if st.button("Run Agent") and user_input:
         with st.spinner("Thinking..."):
             try:
+                # Invoke the agent
                 response = agent_executor.invoke({"input": user_input})
                 st.success(response["output"])
             except Exception as e:
